@@ -55,7 +55,7 @@ class IntentPredictor:
             'youtube': ['youtube', 'open youtube', 'watch video', 'video', 'youtube.com'],
             'whatsapp': ['whatsapp', 'open whatsapp', 'message', 'chat', 'whatsapp web'],
             'gmail': ['gmail', 'open gmail', 'google mail'],
-            'compose_email': ['compose email', 'write email', 'draft email', 'create email', 'type email', 'email to', 'send email to'],
+            'compose_email': ['compose email', 'write email', 'draft email', 'create email', 'type email', 'email to', 'send email to', 'compose a mail', 'write a mail', 'compose mail', 'write mail'],
             'send_email': ['send email', 'email send', 'mail send'],
             'google': ['google', 'open google', 'search', 'google.com'],
             'facebook': ['facebook', 'open facebook', 'fb', 'facebook.com'],

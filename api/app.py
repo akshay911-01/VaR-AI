@@ -34,18 +34,25 @@ MAX_HISTORY = 10  # Keep last 10 exchanges
 def load_model():
     global tokenizer, model
     if tokenizer is None or model is None:
-        print("Loading conversational AI model...")
-        tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-        # Add padding token if it doesn't exist
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-        # Use CPU for now to avoid accelerate issues
-        model = AutoModelForCausalLM.from_pretrained(
-            MODEL_NAME, 
-            torch_dtype=torch.float32,  # Use float32 for CPU
-            low_cpu_mem_usage=True
-        )
-        print("Conversational AI model loaded successfully!")
+        try:
+            print("Loading conversational AI model...")
+            tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+            # Add padding token if it doesn't exist
+            if tokenizer.pad_token is None:
+                tokenizer.pad_token = tokenizer.eos_token
+            # Use CPU for now to avoid accelerate issues
+            model = AutoModelForCausalLM.from_pretrained(
+                MODEL_NAME, 
+                torch_dtype=torch.float32,  # Use float32 for CPU
+                low_cpu_mem_usage=True
+            )
+            print("Conversational AI model loaded successfully!")
+        except Exception as e:
+            print(f"Failed to load AI model: {e}")
+            print("Using fallback responses instead...")
+            # Set to None to force fallback mode
+            tokenizer = None
+            model = None
 
 def add_to_history(user_input, assistant_response):
     """Add conversation to history and maintain max length"""
@@ -63,6 +70,44 @@ def build_conversation_context():
     for exchange in conversation_history[-5:]:  # Use last 5 exchanges for context
         context += f"Human: {exchange['user']}\nAssistant: {exchange['assistant']}\n"
     return context
+
+def is_inappropriate_response(response):
+    """Check if response is inappropriate or unhelpful"""
+    inappropriate_phrases = [
+        "you're not my supervisor",
+        "do nothing",
+        "i don't care",
+        "whatever",
+        "i don't know",
+        "i can't help",
+        "not my problem",
+        "i refuse",
+        "no way",
+        "i won't",
+        "i can't be bothered"
+    ]
+    
+    response_lower = response.lower().strip()
+    
+    # Check for very short, unhelpful responses
+    if len(response) < 10:
+        return True
+    
+    # Check for inappropriate phrases
+    for phrase in inappropriate_phrases:
+        if phrase in response_lower:
+            return True
+    
+    # Check for repetitive responses
+    words = response_lower.split()
+    if len(words) > 3:
+        word_counts = {}
+        for word in words:
+            word_counts[word] = word_counts.get(word, 0) + 1
+        if max(word_counts.values()) > len(words) * 0.4:  # If any word appears more than 40% of the time
+            return True
+    
+    return False
 
 # Intent Predictor (replace paths with your trained files)
 intent_predictor = IntentPredictor(
@@ -126,10 +171,14 @@ Try saying: "open youtube", "compose email to john@example.com", "what's the wea
     try:
         load_model()
         
+        # Check if model loaded successfully
+        if tokenizer is None or model is None:
+            raise Exception("AI model failed to load")
+        
         # Build conversation context
         context = build_conversation_context()
         
-        # Create a more natural conversation prompt
+        # Create a more natural conversation prompt with better instructions
         if context:
             prompt = f"{context}Human: {user_input}\nAssistant:"
         else:
@@ -164,8 +213,15 @@ Try saying: "open youtube", "compose email to john@example.com", "what's the wea
                     full_response += chunk
                     yield f"data: {chunk}\n\n"
             
-            # Add to conversation history
-            add_to_history(user_input, full_response.strip())
+            # Filter inappropriate responses
+            if is_inappropriate_response(full_response.strip()):
+                filtered_response = "I apologize, but I'm having trouble generating an appropriate response. Let me try to help you with something else. You can ask me to open apps, compose emails, or get information about weather, time, etc."
+                add_to_history(user_input, filtered_response)
+                yield f"data: {filtered_response}\n\n"
+            else:
+                # Add to conversation history
+                add_to_history(user_input, full_response.strip())
+            
             yield "data: [END]\n\n"
 
         return Response(generate_stream(), mimetype='text/event-stream')
@@ -185,6 +241,9 @@ Try saying: "open youtube", "compose email to john@example.com", "what's the wea
         
         elif any(word in user_lower for word in ['explain', 'what is', 'tell me about']):
             fallback_response = f"I'd be happy to explain that topic! However, my AI model is currently loading. In the meantime, I can help you with specific commands like 'open youtube', 'compose email', 'what's the weather', or 'help' for more options. What would you like to know about?"
+        
+        elif any(word in user_lower for word in ['al', 'a.i', 'a i']):
+            fallback_response = "I think you're asking about AI (Artificial Intelligence)! AI is a branch of computer science that focuses on creating systems that can perform tasks that typically require human intelligence. This includes learning, reasoning, problem-solving, perception, and language understanding. AI has applications in many fields like healthcare, finance, transportation, and entertainment. Would you like me to explain any specific aspect of AI?"
         
         else:
             fallback_response = f"I understand you're asking about '{user_input}'. My AI model is currently loading, but I can still help you with specific commands like 'open youtube', 'compose email', 'what's the weather', or 'help' for more options!"

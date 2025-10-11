@@ -14,3 +14,4 @@ pyttsx3
 pywhatkit
 requests
 gunicorn
+sentencepiece

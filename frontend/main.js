@@ -4,6 +4,7 @@ const input = document.getElementById('input');
 const sendBtn = document.getElementById('sendBtn');
 const micBtn = document.getElementById('micBtn');
 const ttsToggle = document.getElementById('ttsToggle');
+const clearBtn = document.getElementById('clearBtn');
 const status = document.getElementById('status');
 
 const API_STREAM_URL = (text) => `/stream?text=${encodeURIComponent(text)}`; // expects GET SSE
@@ -140,6 +141,28 @@ function toggleTTS() {
   }
 }
 
+// Clear conversation history
+function clearConversation() {
+  chat.innerHTML = '';
+  status.textContent = 'Conversation cleared';
+  
+  // Call API to clear server-side history
+  fetch('/api/clear_history', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  }).then(response => response.json())
+    .then(data => {
+      console.log('History cleared:', data);
+      status.textContent = 'Idle';
+    })
+    .catch(error => {
+      console.error('Error clearing history:', error);
+      status.textContent = 'Error clearing history';
+    });
+}
+
 // Initialize TTS toggle
 function initTTSToggle() {
   if ('speechSynthesis' in window) {
@@ -162,6 +185,7 @@ micBtn.addEventListener('click', () => {
   else recognition.start();
 });
 ttsToggle.addEventListener('click', toggleTTS);
+clearBtn.addEventListener('click', clearConversation);
 
 // Initialize everything
 initTTSToggle();

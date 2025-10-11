@@ -21,5 +21,7 @@ button{background:var(--accent); color:#042027; border:none; padding:10px 14px; 
 .tts-toggle{background:transparent; color:var(--accent); font-size:18px; border:1px solid rgba(125,211,252,0.12); padding:8px 10px; transition:all 0.3s ease}
 .tts-toggle.active{background:var(--accent); color:#042027; border-color:var(--accent)}
 .tts-toggle.disabled{color:var(--muted); border-color:rgba(154,164,178,0.12); cursor:not-allowed}
+#clearBtn{background:transparent; color:#ff6b6b; font-size:18px; border:1px solid rgba(255,107,107,0.12); padding:8px 10px; transition:all 0.3s ease}
+#clearBtn:hover{background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.3)}
 .status{color:var(--muted); font-size:13px}
 footer{margin-top:10px; text-align:right; color:var(--muted)}

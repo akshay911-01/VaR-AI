@@ -51,16 +51,18 @@ class IntentPredictor:
         # Simple keyword-based intent detection
         self.intent_keywords = {
             'weather': ['weather', 'temperature', 'rain', 'sunny', 'cloudy', 'forecast', 'climate'],
-            'music': ['play', 'music', 'song', 'artist', 'album'],
+            'music': ['play music', 'play song', 'play artist', 'play album'],
             'youtube': ['youtube', 'open youtube', 'watch video', 'video', 'youtube.com'],
             'whatsapp': ['whatsapp', 'open whatsapp', 'message', 'chat', 'whatsapp web'],
-            'gmail': ['gmail', 'open gmail', 'email', 'mail', 'google mail'],
+            'gmail': ['gmail', 'open gmail', 'google mail'],
+            'compose_email': ['compose email', 'write email', 'draft email', 'create email', 'type email', 'email to', 'send email to'],
+            'send_email': ['send email', 'email send', 'mail send'],
             'google': ['google', 'open google', 'search', 'google.com'],
             'facebook': ['facebook', 'open facebook', 'fb', 'facebook.com'],
             'instagram': ['instagram', 'open instagram', 'insta', 'instagram.com'],
             'twitter': ['twitter', 'open twitter', 'tweet', 'twitter.com', 'x.com'],
             'netflix': ['netflix', 'open netflix', 'watch movie', 'stream', 'netflix.com'],
-            'spotify': ['spotify', 'open spotify', 'play music', 'spotify.com'],
+            'spotify': ['spotify', 'open spotify', 'spotify.com'],
             'github': ['github', 'open github', 'git', 'github.com'],
             'stackoverflow': ['stackoverflow', 'open stackoverflow', 'stack overflow', 'stackoverflow.com'],
             'calculator': ['calculator', 'open calculator', 'calc', 'calculate'],
@@ -68,8 +70,9 @@ class IntentPredictor:
             'file_explorer': ['file explorer', 'open file explorer', 'files', 'folder', 'explorer'],
             'time': ['time', 'clock', 'what time', 'current time'],
             'date': ['date', 'what date', 'today', 'current date'],
-            'greeting': ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'],
-            'help': ['help', 'assist', 'support', 'what can you do', 'commands']
+            'greeting': ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', 'how do you do'],
+            'help': ['help', 'assist', 'support', 'what can you do', 'commands', 'what are your capabilities'],
+            'conversation': ['tell me', 'explain', 'what is', 'how does', 'why', 'can you', 'do you know', 'i want to know', 'i need help with']
         }
         
         self.default_intent = 'general'
@@ -91,11 +94,20 @@ class IntentPredictor:
             except Exception as e:
                 print(f"Error in model prediction: {e}")
         
-        # Fallback to keyword-based detection
+        # Fallback to keyword-based detection with priority for longer matches
         text_lower = text.lower()
+        
+        # Sort keywords by length (longest first) to prioritize specific matches
+        intent_matches = []
         for intent, keywords in self.intent_keywords.items():
-            if any(keyword in text_lower for keyword in keywords):
-                return intent
+            for keyword in keywords:
+                if keyword in text_lower:
+                    intent_matches.append((intent, len(keyword)))
+        
+        # Return the intent with the longest matching keyword
+        if intent_matches:
+            intent_matches.sort(key=lambda x: x[1], reverse=True)
+            return intent_matches[0][0]
         
         return self.default_intent
     

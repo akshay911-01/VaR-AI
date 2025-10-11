@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mistral Assistant — Live</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Mistral Assistant (Live)</h1>
+    </header>
+
+    <main>
+      <div id="chat" class="chat"></div>
+
+      <div class="controls">
+        <button id="micBtn" title="Start/Stop voice input">🎤</button>
+        <input id="input" type="text" placeholder="Type your message and press Enter or Send" />
+        <button id="sendBtn">Send</button>
+        <button id="ttsToggle" title="Toggle Text-to-Speech" class="tts-toggle">🔊</button>
+      </div>
+
+      <div class="status" id="status">Idle</div>
+    </main>
+    <footer>
+      <small>Streaming via SSE • Browser TTS & STT</small>
+    </footer>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

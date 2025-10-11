@@ -1,0 +1,29 @@
+{
+  "intents": [
+    {
+      "tag": "greeting",
+      "patterns": ["hi", "hello", "hey", "good morning", "good evening"],
+      "responses": ["Hello! How can I help you?"]
+    },
+    {
+      "tag": "goodbye",
+      "patterns": ["bye", "see you", "goodbye", "catch you later"],
+      "responses": ["Goodbye!"]
+    },
+    {
+      "tag": "weather",
+      "patterns": ["what is the weather", "weather in {location}", "tell me the weather", "temperature in {location}"],
+      "responses": ["Fetching weather for {location}..."]
+    },
+    {
+      "tag": "play_music",
+      "patterns": ["play music", "play song", "play {song} on youtube", "play {song}"],
+      "responses": ["Playing {song} on YouTube."]
+    },
+    {
+      "tag": "send_whatsapp",
+      "patterns": ["send whatsapp message", "text {contact}", "send message to {contact}"],
+      "responses": ["Sending message to {contact}..."]
+    }
+  ]
+}

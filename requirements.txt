@@ -1,0 +1,15 @@
+flask
+flask-cors
+torch
+torchtext
+transformers
+accelerate
+scikit-learn
+pandas
+numpy
+spacy
+speechrecognition
+pyttsx3
+pywhatkit
+requests
+gunicorn

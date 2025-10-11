@@ -12,6 +12,7 @@ if PROJECT_ROOT not in sys.path:
 
 from models.intent_model import IntentPredictor
 from preprocessing.text_utils import clean_text
+from actions.action_router import handle_intent
 
 # -----------------------------
 # Flask app
@@ -58,13 +59,36 @@ def stream_chat():
     cleaned = clean_text(user_input)
     intent = intent_predictor.predict_intent(cleaned)
     
+    # Handle specific actions first
+    action_intents = [
+        "weather", "music", "youtube", "time", "whatsapp", "gmail", "google", 
+        "facebook", "instagram", "twitter", "netflix", "spotify", "github", 
+        "stackoverflow", "calculator", "notepad", "file_explorer", "date"
+    ]
+    
+    if intent in action_intents:
+        try:
+            action_response = handle_intent(intent, user_input)
+            return Response(f"data: {action_response}\n\n", mimetype='text/event-stream')
+        except Exception as e:
+            return Response(f"data: Error performing action: {str(e)}\n\n", mimetype='text/event-stream')
+    
     # Simple responses for common intents
-    if intent == "weather":
-        return Response(f"data: The weather is sunny today! ☀️\n\n", mimetype='text/event-stream')
     elif intent == "greeting":
         return Response(f"data: Hello! How can I help you today?\n\n", mimetype='text/event-stream')
     elif intent == "help":
-        return Response(f"data: I can help you with weather, time, music, and general questions!\n\n", mimetype='text/event-stream')
+        help_text = """I can help you with many things! Here are some commands you can try:
+
+🌐 **Web Apps:** YouTube, WhatsApp, Gmail, Google, Facebook, Instagram, Twitter, Netflix, Spotify, GitHub, Stack Overflow
+
+🖥️ **System Apps:** Calculator, Notepad, File Explorer
+
+📅 **Information:** Weather, Time, Date
+
+💬 **General:** Just ask me anything!
+
+Try saying: "open youtube", "what's the weather", "open calculator", etc."""
+        return Response(f"data: {help_text}\n\n", mimetype='text/event-stream')
     
     # For other intents, try to load the model
     try:

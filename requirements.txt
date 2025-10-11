@@ -8,6 +8,7 @@ scikit-learn
 pandas
 numpy
 spacy
+nltk
 speechrecognition
 pyttsx3
 pywhatkit

@@ -50,11 +50,26 @@ class IntentPredictor:
         
         # Simple keyword-based intent detection
         self.intent_keywords = {
-            'weather': ['weather', 'temperature', 'rain', 'sunny', 'cloudy', 'forecast'],
+            'weather': ['weather', 'temperature', 'rain', 'sunny', 'cloudy', 'forecast', 'climate'],
             'music': ['play', 'music', 'song', 'artist', 'album'],
+            'youtube': ['youtube', 'open youtube', 'watch video', 'video', 'youtube.com'],
+            'whatsapp': ['whatsapp', 'open whatsapp', 'message', 'chat', 'whatsapp web'],
+            'gmail': ['gmail', 'open gmail', 'email', 'mail', 'google mail'],
+            'google': ['google', 'open google', 'search', 'google.com'],
+            'facebook': ['facebook', 'open facebook', 'fb', 'facebook.com'],
+            'instagram': ['instagram', 'open instagram', 'insta', 'instagram.com'],
+            'twitter': ['twitter', 'open twitter', 'tweet', 'twitter.com', 'x.com'],
+            'netflix': ['netflix', 'open netflix', 'watch movie', 'stream', 'netflix.com'],
+            'spotify': ['spotify', 'open spotify', 'play music', 'spotify.com'],
+            'github': ['github', 'open github', 'git', 'github.com'],
+            'stackoverflow': ['stackoverflow', 'open stackoverflow', 'stack overflow', 'stackoverflow.com'],
+            'calculator': ['calculator', 'open calculator', 'calc', 'calculate'],
+            'notepad': ['notepad', 'open notepad', 'text editor', 'write', 'note'],
+            'file_explorer': ['file explorer', 'open file explorer', 'files', 'folder', 'explorer'],
             'time': ['time', 'clock', 'what time', 'current time'],
-            'greeting': ['hello', 'hi', 'hey', 'good morning', 'good afternoon'],
-            'help': ['help', 'assist', 'support', 'what can you do']
+            'date': ['date', 'what date', 'today', 'current date'],
+            'greeting': ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'],
+            'help': ['help', 'assist', 'support', 'what can you do', 'commands']
         }
         
         self.default_intent = 'general'

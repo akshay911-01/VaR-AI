@@ -9,6 +9,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import json
+import nltk
+nltk.download('punkt_tab')
 
 def handle_intent(intent, raw_text=None):
     """
@@ -136,23 +138,65 @@ def open_file_explorer():
     except:
         return "Could not open file explorer"
 
-def get_weather(city="Bangalore"):
-    """
-    Fetches weather using OpenWeatherMap API (replace with your API key).
-    """
-    API_KEY = "YOUR_OPENWEATHER_API_KEY"
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
-    try:
-        response = requests.get(url)
-        data = response.json()
-        if data.get("main"):
-            temp = data["main"]["temp"]
-            desc = data["weather"][0]["description"]
-            return f"The weather in {city} is {desc} with a temperature of {temp}°C."
-        else:
-            return "Couldn't fetch weather details right now."
-    except:
-        return "Error fetching weather details."
+import requests
+from actions.weather_api import get_weather
+
+# def get_weather(city="Bangalore"):
+#     """
+#     Fetches current weather for a given city using the Open-Meteo API (no API key needed).
+#     """
+#     try:
+#         # Step 1: Get latitude and longitude for the city
+#         geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1"
+#         geo_response = requests.get(geo_url, timeout=5).json()
+
+#         if "results" not in geo_response or not geo_response["results"]:
+#             return f"Couldn't find location for '{city}'."
+
+#         lat = geo_response["results"][0]["latitude"]
+#         lon = geo_response["results"][0]["longitude"]
+#         name = geo_response["results"][0]["name"]
+#         country = geo_response["results"][0].get("country", "")
+
+#         # Step 2: Get current weather data
+#         weather_url = (
+#             f"https://api.open-meteo.com/v1/forecast?"
+#             f"latitude={lat}&longitude={lon}&current=temperature_2m,weather_code&timezone=auto"
+#         )
+#         weather_response = requests.get(weather_url, timeout=5).json()
+#         current = weather_response.get("current", {})
+
+#         if not current:
+#             return f"Couldn't fetch weather for '{city}'."
+
+#         temp = current.get("temperature_2m", "N/A")
+#         code = current.get("weather_code", 0)
+
+#         # Step 3: Map weather code to description
+#         WEATHER_CODES = {
+#             0: "Clear sky",
+#             1: "Mainly clear",
+#             2: "Partly cloudy",
+#             3: "Overcast",
+#             45: "Foggy",
+#             48: "Depositing rime fog",
+#             51: "Light drizzle",
+#             61: "Slight rain",
+#             63: "Moderate rain",
+#             65: "Heavy rain",
+#             71: "Slight snow",
+#             73: "Moderate snow",
+#             75: "Heavy snow",
+#             95: "Thunderstorm",
+#         }
+
+#         desc = WEATHER_CODES.get(code, "Unknown conditions")
+
+#         return f"The weather in {name}, {country} is {desc.lower()} with a temperature of {temp}°C."
+
+#     except Exception as e:
+#         return f"Error fetching weather details for {city}: {e}"
+
 
 def compose_email(user_input):
     """

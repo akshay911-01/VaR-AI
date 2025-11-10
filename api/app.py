@@ -24,6 +24,7 @@ CORS(app)  # Enable CORS for all routes
 # Load models
 # -----------------------------
 MODEL_NAME = "microsoft/DialoGPT-medium"  # Better conversational model
+ASSISTANT_NAME = "VIRAI"
 tokenizer = None
 model = None
 
@@ -68,7 +69,7 @@ def build_conversation_context():
     
     context = ""
     for exchange in conversation_history[-5:]:  # Use last 5 exchanges for context
-        context += f"Human: {exchange['user']}\nAssistant: {exchange['assistant']}\n"
+        context += f"Human: {exchange['user']}\n{ASSISTANT_NAME}: {exchange['assistant']}\n"
     return context
 
 def is_inappropriate_response(response):
@@ -180,9 +181,9 @@ Try saying: "open youtube", "compose email to john@example.com", "what's the wea
         
         # Create a more natural conversation prompt with better instructions
         if context:
-            prompt = f"{context}Human: {user_input}\nAssistant:"
+            prompt = f"{context}Human: {user_input}\n{ASSISTANT_NAME}:"
         else:
-            prompt = f"Human: {user_input}\nAssistant:"
+            prompt = f"Human: {user_input}\n{ASSISTANT_NAME}:"
         
         # Tokenize the prompt
         inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512)

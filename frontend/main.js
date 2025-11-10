@@ -18,7 +18,7 @@ function appendMessage(text, who='bot', streaming=false){
   const d = document.createElement('div');
   d.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
   d.dataset.streaming = streaming ? '1' : '0';
-  d.innerHTML = (who === 'user' ? `<b>You</b>: ` : `<b>Assistant</b>: `) + (streaming ? `<span class="stream-text">${escapeHtml(text)}</span>` : escapeHtml(text));
+  d.innerHTML = (who === 'user' ? `<b>You</b>: ` : `<b>VIRAI</b>: `) + (streaming ? `<span class="stream-text">${escapeHtml(text)}</span>` : escapeHtml(text));
   chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
   return d;

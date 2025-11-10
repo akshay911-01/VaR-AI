@@ -198,124 +198,151 @@ from actions.weather_api import get_weather
 #         return f"Error fetching weather details for {city}: {e}"
 
 
-def compose_email(user_input):
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import re
+import os
+import json
+import datetime
+
+def extract_email_and_body(user_input):
     """
-    Composes an email based on user input and opens email compose.
+    Extracts email address, subject, and body text from user input.
+    Handles both structured input (to:, subject:, body:) and natural text.
     """
-    try:
-        import urllib.parse
-        
-        # Parse user input for email details
-        lines = user_input.split('\n')
-        to_email = ""
-        subject = "Email from AI Assistant"
-        body = user_input
-        
-        # Extract recipient, subject, and body from input
-        for line in lines:
-            line_lower = line.lower().strip()
-            if line_lower.startswith("to:") or line_lower.startswith("send to:"):
-                to_email = line.split(":")[-1].strip()
-            elif line_lower.startswith("subject:"):
-                subject = line.split(":")[-1].strip()
-            elif line_lower.startswith("body:") or line_lower.startswith("message:"):
-                body = line.split(":")[-1].strip()
-        
-        # If no specific body found, use the whole input as body
-        if body == user_input and not any(line.lower().startswith(("to:", "subject:", "body:", "message:")) for line in lines):
-            body = f"Hello,\n\n{user_input}\n\nBest regards,\nAI Assistant"
-        
-        # URL encode the email content
-        subject_encoded = urllib.parse.quote(subject)
-        body_encoded = urllib.parse.quote(body)
-        to_encoded = urllib.parse.quote(to_email)
-        
-        # Try different email providers
-        email_urls = [
-            # Gmail
-            f"https://mail.google.com/mail/?view=cm&fs=1&to={to_encoded}&su={subject_encoded}&body={body_encoded}",
-            # Outlook
-            f"https://outlook.live.com/mail/0/deeplink/compose?to={to_encoded}&subject={subject_encoded}&body={body_encoded}",
-            # Yahoo
-            f"https://compose.mail.yahoo.com/?to={to_encoded}&subject={subject_encoded}&body={body_encoded}"
-        ]
-        
-        # Open Gmail first (most common)
-        webbrowser.open(email_urls[0])
-        
-        return f"Opening email compose with your message to {to_email or 'recipient'}: '{body[:50]}{'...' if len(body) > 50 else ''}' 📧"
-    
-    except Exception as e:
-        return f"Error composing email: {str(e)}"
+    lines = user_input.split("\n")
+    to_email = None
+    subject = ""
+    body_lines = []
+
+    # Try to find a valid email address anywhere in the text
+    email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', user_input)
+    if email_match:
+        to_email = email_match.group(0)
+
+    # Look for structured fields if present
+    for line in lines:
+        line_lower = line.lower().strip()
+        if line_lower.startswith(("to:", "send to:")):
+            to_email = line.split(":", 1)[-1].strip()
+        elif line_lower.startswith("subject:"):
+            subject = line.split(":", 1)[-1].strip()
+        elif line_lower.startswith(("body:", "message:")):
+            body_lines.append(line.split(":", 1)[-1].strip())
+        else:
+            # Treat non-structured lines as part of the body if not 'to:' or 'subject:'
+            if not any(line_lower.startswith(x) for x in ("to:", "subject:", "body:", "message:")):
+                body_lines.append(line.strip())
+
+    body = "\n".join([line for line in body_lines if line])
+    if not body:
+        body = "No message content provided."
+
+    return to_email, subject or "Email from VIRAI", body
+
 
 def send_email(user_input):
     """
-    Sends an email using SMTP (requires email configuration).
+    Sends an email using SMTP to the address mentioned in the user input.
+    Requires EMAIL_ADDRESS and EMAIL_PASSWORD set as environment variables.
     """
     try:
-        # This is a template - you'll need to configure your email settings
-        # For security, store email credentials in environment variables
-        
-        # Example configuration (replace with your actual settings)
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
         sender_email = os.getenv("EMAIL_ADDRESS", "your-email@gmail.com")
         sender_password = os.getenv("EMAIL_PASSWORD", "your-app-password")
-        
-        # Parse user input for email details
-        # This is a simple parser - you can make it more sophisticated
-        lines = user_input.split('\n')
-        to_email = "recipient@example.com"  # Default recipient
-        subject = "Email from AI Assistant"
-        body = user_input
-        
-        # Try to extract recipient from input
-        for line in lines:
-            if "to:" in line.lower() or "send to:" in line.lower():
-                to_email = line.split(":")[-1].strip()
-            elif "subject:" in line.lower():
-                subject = line.split(":")[-1].strip()
-        
+
+        to_email, subject, body = extract_email_and_body(user_input)
+
+        if not to_email:
+            return "Couldn't find a valid email address in your message."
+
         # Create email message
         msg = MIMEMultipart()
-        msg['From'] = sender_email
-        msg['To'] = to_email
-        msg['Subject'] = subject
-        
-        msg.attach(MIMEText(body, 'plain'))
-        
-        # Send email
+        msg["From"] = sender_email
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
+
+        # Send via Gmail SMTP
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
         server.login(sender_email, sender_password)
-        text = msg.as_string()
-        server.sendmail(sender_email, to_email, text)
+        server.send_message(msg)
         server.quit()
-        
+
         return f"Email sent successfully to {to_email} with subject: '{subject}' 📧"
-    
+
     except Exception as e:
         return f"Error sending email: {str(e)}. Please check your email configuration."
 
+
 def draft_email(user_input):
     """
-    Creates a draft email and saves it locally.
+    Creates an email draft from user input and saves it locally as JSON.
     """
     try:
-        # Create email draft
+        to_email, subject, body = extract_email_and_body(user_input)
         draft = {
             "timestamp": datetime.datetime.now().isoformat(),
-            "content": user_input,
-            "subject": "Draft Email",
-            "to": "recipient@example.com"
+            "to": to_email or "recipient@example.com",
+            "subject": subject,
+            "body": body,
         }
-        
-        # Save draft to file
+
         draft_file = "email_draft.json"
-        with open(draft_file, 'w') as f:
+        with open(draft_file, "w") as f:
             json.dump(draft, f, indent=2)
-        
+
         return f"Email draft saved! You can find it in {draft_file} 📝"
-    
+
     except Exception as e:
         return f"Error creating draft: {str(e)}"
+
+import webbrowser
+import urllib.parse
+import re
+
+def compose_email(user_input):
+    """
+    Extracts email and message from user input and opens Gmail compose window.
+    """
+    try:
+        # Extract email
+        email_match = re.search(r'[\w\.-]+@[\w\.-]+\.\w+', user_input)
+        if email_match:
+            to_email = email_match.group(0)
+        else:
+            return "Couldn't find a valid email address in your message."
+
+        # Extract message (everything after 'say' or after the email)
+        message = ""
+        if "say" in user_input.lower():
+            message = user_input.split("say", 1)[-1].strip(" \"'")
+        elif "message" in user_input.lower():
+            message = user_input.split("message", 1)[-1].strip(" \"'")
+        else:
+            # fallback: take entire text after email as message
+            parts = user_input.split(to_email)
+            if len(parts) > 1:
+                message = parts[1].strip()
+            else:
+                message = "Hello!"
+
+        # Prepare Gmail compose URL
+        subject = "Enter subject here"
+        to_encoded = urllib.parse.quote(to_email)
+        subject_encoded = urllib.parse.quote(subject)
+        body_encoded = urllib.parse.quote(message)
+
+        gmail_url = (
+            f"https://mail.google.com/mail/?view=cm&fs=1"
+            f"&to={to_encoded}&su={subject_encoded}&body={body_encoded}"
+        )
+
+        webbrowser.open(gmail_url)
+        return f"Opening Gmail compose for {to_email} with message: “{message}” 📧"
+
+    except Exception as e:
+        return f"Error composing email: {str(e)}"

@@ -89,6 +89,19 @@ def handle_intent(intent, raw_text=None):
 
     elif intent == "send_email":
         return send_email(raw_text)
+    
+    elif intent == "name":
+        return "I'm VIRAI — your advanced, intelligent, and efficient virtual assistant powered by the Mistral 7B model 💫"
+
+    elif intent == "greeting":
+        return "Hello there ✨ I’m VIRAI — your virtual assistant, ready to help. How are you today?"
+
+    elif intent == "capabilities":
+        return (
+        "I can help you manage tasks, check the weather, compose emails, summarize text, "
+        "and assist with technical or creative work. What would you like me to do next?"
+    )
+
 
     else:
         return "Sorry, I can't perform that action yet."

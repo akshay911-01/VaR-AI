@@ -127,3 +127,19 @@ class IntentPredictor:
             if any(keyword in text_lower for keyword in keywords):
                 return 1.0
         return 0.5
+
+def get_intent(user_input: str) -> str:
+    text = user_input.lower()
+
+    if "weather" in text:
+        return "weather"
+    elif "email" in text or "mail" in text:
+        return "compose_email"
+    elif "your name" in text or "who are you" in text:
+        return "name"
+    elif "how are you" in text:
+        return "greeting"
+    elif "what can you do" in text or "help" in text:
+        return "capabilities"
+    else:
+        return "unknown"
